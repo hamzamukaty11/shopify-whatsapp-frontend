@@ -1,95 +1,48 @@
-import { useState } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  ShoppingBag,
-  Truck,
-  Package,
-  CreditCard,
-  RefreshCw,
-  Edit,
-  Eye
-} from 'lucide-react'
+import { Clock, ShoppingBag, Truck, Package, XCircle, RefreshCw, ExternalLink } from 'lucide-react'
 
 function Templates() {
-  const [filter, setFilter] = useState('all')
-
   const templates = [
     {
       id: 1,
       name: 'Order Confirmation',
-      category: 'TRANSACTIONAL',
-      status: 'approved',
+      metaName: 'order_confirmed',
       icon: ShoppingBag,
       color: 'green',
-      preview: "Hi {{1}}! 🎉 Your order #{{2}} for {{3}} has been confirmed. Total: {{4}}. We'll notify you once shipped!",
-      lang: 'English',
-      sent: 4520,
+      preview: 'Hi [name]! Your order #[number] has been confirmed. Total: [currency] [amount]. We will notify you once it ships. Thank you for shopping with us!',
     },
     {
       id: 2,
       name: 'Order Shipped',
-      category: 'SHIPPING',
-      status: 'approved',
+      metaName: 'order_shipped',
       icon: Truck,
       color: 'blue',
-      preview: "📦 Great news {{1}}! Your order #{{2}} has been shipped. Track here: {{3}}. Estimated delivery: {{4}}",
-      lang: 'English',
-      sent: 3890,
+      preview: 'Hi [name]! Your order #[number] has been shipped. Carrier: [carrier]. Tracking: [number]. Expected delivery: [date]. Reply here if you have questions!',
     },
     {
       id: 3,
       name: 'Order Delivered',
-      category: 'DELIVERY',
-      status: 'approved',
+      metaName: 'order_delivered',
       icon: Package,
       color: 'purple',
-      preview: "✅ Hi {{1}}, your order #{{2}} has been delivered! We hope you love it. Leave a review: {{3}}",
-      lang: 'English',
-      sent: 3210,
+      preview: 'Hi [name]! Your order #[number] has been delivered. We hope you love your purchase! If anything is wrong, please reply within 48 hours.',
     },
     {
       id: 4,
       name: 'Order Cancelled',
-      category: 'TRANSACTIONAL',
-      status: 'approved',
+      metaName: 'order_cancelled',
       icon: XCircle,
       color: 'red',
-      preview: "Hi {{1}}, your order #{{2}} has been cancelled. Refund of {{3}} will be processed within 5-7 days.",
-      lang: 'English',
-      sent: 247,
+      preview: 'Hi [name], your order #[number] has been cancelled. A refund of [currency] [amount] will be returned within 5-7 business days.',
     },
     {
       id: 5,
-      name: 'Refund Issued',
-      category: 'PAYMENT',
-      status: 'approved',
+      name: 'Abandoned Cart',
+      metaName: 'abandoned_cart',
       icon: RefreshCw,
       color: 'orange',
-      preview: "💰 {{1}}, your refund of {{2}} for order #{{3}} has been issued. It will reflect in 3-5 business days.",
-      lang: 'English',
-      sent: 180,
-    },
-    {
-      id: 6,
-      name: 'Payment Confirmation',
-      category: 'PAYMENT',
-      status: 'pending',
-      icon: CreditCard,
-      color: 'indigo',
-      preview: "Hi {{1}}, payment of {{2}} for order #{{3}} received. Thank you for your purchase!",
-      lang: 'English',
-      sent: 0,
+      preview: 'Hi [name]! You left items in your cart. Total: [currency] [amount]. Complete your purchase here: [url]. This link expires in 24 hours!',
     },
   ]
-
-  const filteredTemplates = filter === 'all' 
-    ? templates 
-    : templates.filter(t => t.status === filter)
 
   const colorClasses = {
     green: 'bg-green-50 text-green-600',
@@ -97,112 +50,65 @@ function Templates() {
     purple: 'bg-purple-50 text-purple-600',
     red: 'bg-red-50 text-red-600',
     orange: 'bg-orange-50 text-orange-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Message Templates</h1>
-          <p className="text-gray-500 mt-1">Manage your WhatsApp notification templates</p>
+          <p className="text-gray-500 mt-1">WhatsApp notification templates submitted to Meta for approval</p>
         </div>
-        <button className="btn-primary">
-          <Plus className="w-4 h-4" />
-          Create Template
-        </button>
+        
+          href="https://business.facebook.com/wa/manage/message-templates"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary"
+        >
+          <ExternalLink className="w-4 h-4" />
+          Manage in Meta
+        </a>
       </div>
 
-      {/* Stats Row */}
+      <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">
+        Your 5 templates have been submitted to Meta for review. Approval usually takes a few hours to 24 hours. Once approved they will be used automatically for all order notifications.
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Templates</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{templates.length}</p>
         </div>
         <div className="card p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Submitted</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1">{templates.length}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Pending Review</p>
+          <p className="text-2xl font-bold text-yellow-600 mt-1">{templates.length}</p>
+        </div>
+        <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Approved</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{templates.filter(t => t.status === 'approved').length}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Pending</p>
-          <p className="text-2xl font-bold text-yellow-600 mt-1">{templates.filter(t => t.status === 'pending').length}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Sent This Month</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">12,047</p>
+          <p className="text-2xl font-bold text-green-600 mt-1">0</p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search templates..." 
-            className="bg-transparent outline-none text-sm flex-1"
-          />
-        </div>
-        <div className="flex gap-1 bg-white border border-gray-200 rounded-lg p-1">
-          {['all', 'approved', 'pending'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
-                filter === f 
-                  ? 'bg-primary-50 text-primary-700' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTemplates.map((template) => (
+        {templates.map((template) => (
           <div key={template.id} className="card p-5 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[template.color]}`}>
+              <div className={"w-10 h-10 rounded-lg flex items-center justify-center " + colorClasses[template.color]}>
                 <template.icon className="w-5 h-5" />
               </div>
-              {template.status === 'approved' ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Approved
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-                  <Clock className="w-3 h-3" />
-                  Pending
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                <Clock className="w-3 h-3" />
+                Pending
+              </span>
             </div>
-
             <h3 className="font-semibold text-gray-900 mb-1">{template.name}</h3>
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-3">{template.category}</p>
-
-            <div className="bg-gray-50 rounded-lg p-3 mb-4 border border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-3">{template.metaName}</p>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
               <p className="text-xs text-gray-700 leading-relaxed">{template.preview}</p>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-              <span>🌐 {template.lang}</span>
-              <span>{template.sent.toLocaleString()} sent</span>
-            </div>
-
-            <div className="flex gap-2">
-              <button className="flex-1 btn-secondary text-xs py-2">
-                <Eye className="w-3.5 h-3.5" />
-                Preview
-              </button>
-              <button className="flex-1 btn-secondary text-xs py-2">
-                <Edit className="w-3.5 h-3.5" />
-                Edit
-              </button>
             </div>
           </div>
         ))}
