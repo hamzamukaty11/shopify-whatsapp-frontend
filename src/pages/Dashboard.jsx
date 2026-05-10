@@ -47,10 +47,10 @@ function Dashboard() {
   }
 
   const stats = analytics ? [
-    { name: 'Messages Sent', value: (analytics.totalSent || 0).toLocaleString(), icon: Send, color: 'green' },
-    { name: 'Delivery Rate', value: analytics.totalSent > 0 ? ((analytics.totalDelivered / analytics.totalSent) * 100).toFixed(1) + '%' : '0%', icon: CheckCircle2, color: 'blue' },
-    { name: 'Delivered', value: (analytics.totalDelivered || 0).toLocaleString(), icon: MessageCircle, color: 'purple' },
-    { name: 'Failed Messages', value: (analytics.totalFailed || 0).toLocaleString(), icon: AlertCircle, color: 'red' },
+    { name: 'Messages Sent', value: (analytics.total || 0).toLocaleString(), icon: Send, color: 'green' },
+    { name: 'Delivery Rate', value: (analytics.deliveryRate || '0.0') + '%', icon: CheckCircle2, color: 'blue' },
+    { name: 'Delivered', value: (analytics.delivered || 0).toLocaleString(), icon: MessageCircle, color: 'purple' },
+    { name: 'Failed Messages', value: (analytics.failed || 0).toLocaleString(), icon: AlertCircle, color: 'red' },
   ] : []
 
   const colorClasses = {
@@ -60,16 +60,16 @@ function Dashboard() {
     red: 'bg-red-50 text-red-600',
   }
 
-  const chartData = analytics?.dailyBreakdown?.slice(-7).map(d => ({
+  const chartData = analytics?.daily?.slice(-7).map(d => ({
     day: new Date(d.date).toLocaleDateString('en', { weekday: 'short' }),
-    sent: d.sent || 0,
-    delivered: d.delivered || 0,
+    sent: d.count || 0,
   })) || []
 
   const eventData = analytics?.byEvent
-    ? Object.entries(analytics.byEvent)
-        .map(([name, count]) => ({ name: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), count }))
-        .sort((a, b) => b.count - a.count).slice(0, 5)
+    ? Object.entries(analytics.byEvent).map(([name, val]) => ({
+        name: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        count: (val.delivered || 0) + (val.failed || 0) + (val.pending || 0)
+      })).sort((a, b) => b.count - a.count).slice(0, 5)
     : []
 
   return (
@@ -82,17 +82,12 @@ function Dashboard() {
         <div className="flex gap-2">
           <button onClick={loadData} className="btn-secondary">Refresh</button>
           <button onClick={() => { setShowTestModal(true); setTestResult(null); setTestPhone('') }} className="btn-primary">
-            <Send className="w-4 h-4" />
-            Send Test Message
+            <Send className="w-4 h-4" />Send Test Message
           </button>
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          Could not load data: {error}
-        </div>
-      )}
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">Could not load data: {error}</div>}
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -108,7 +103,7 @@ function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat) => (
             <div key={stat.name} className="stat-card">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[stat.color]}`}>
+              <div className={"w-10 h-10 rounded-lg flex items-center justify-center " + colorClasses[stat.color]}>
                 <stat.icon className="w-5 h-5" />
               </div>
               <div className="mt-4">
@@ -122,15 +117,9 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Message Activity</h2>
-              <p className="text-sm text-gray-500">Last 7 days performance</p>
-            </div>
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-500 rounded-full"></div><span className="text-gray-600">Sent</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-blue-500 rounded-full"></div><span className="text-gray-600">Delivered</span></div>
-            </div>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Message Activity</h2>
+            <p className="text-sm text-gray-500">Last 7 days</p>
           </div>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -140,13 +129,10 @@ function Dashboard() {
                 <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px' }} />
                 <Line type="monotone" dataKey="sent" stroke="#22c55e" strokeWidth={2.5} dot={{ fill: '#22c55e', r: 4 }} />
-                <Line type="monotone" dataKey="delivered" stroke="#3b82f6" strokeWidth={2.5} dot={{ fill: '#3b82f6', r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400 text-sm">
-              No message data yet. Send a test message to get started!
-            </div>
+            <div className="h-[300px] flex items-center justify-center text-gray-400 text-sm">No message data yet. Send a test message to get started!</div>
           )}
         </div>
 
@@ -159,7 +145,7 @@ function Dashboard() {
             <div className="space-y-4">
               {eventData.map((item) => {
                 const max = Math.max(...eventData.map(d => d.count))
-                const percentage = (item.count / max) * 100
+                const percentage = max > 0 ? (item.count / max) * 100 : 0
                 return (
                   <div key={item.name}>
                     <div className="flex items-center justify-between mb-1.5 text-sm">
@@ -167,7 +153,7 @@ function Dashboard() {
                       <span className="text-gray-500">{item.count.toLocaleString()}</span>
                     </div>
                     <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style={{ width: `${percentage}%` }}></div>
+                      <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style={{ width: percentage + '%' }}></div>
                     </div>
                   </div>
                 )
@@ -180,11 +166,9 @@ function Dashboard() {
       </div>
 
       <div className="card">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-            <p className="text-sm text-gray-500">Latest notifications sent to customers</p>
-          </div>
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+          <p className="text-sm text-gray-500">Latest notifications sent to customers</p>
         </div>
         <div className="overflow-x-auto">
           {logs.length > 0 ? (
@@ -232,9 +216,7 @@ function Dashboard() {
               </tbody>
             </table>
           ) : (
-            <div className="py-16 text-center text-gray-400 text-sm">
-              No messages sent yet. Send a test message to get started!
-            </div>
+            <div className="py-16 text-center text-gray-400 text-sm">No messages sent yet. Send a test message to get started!</div>
           )}
         </div>
       </div>
@@ -255,7 +237,7 @@ function Dashboard() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {testResult && (
-              <div className={`text-sm px-4 py-3 rounded-lg mb-4 ${testResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <div className={"text-sm px-4 py-3 rounded-lg mb-4 " + (testResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}>
                 {testResult.message}
               </div>
             )}
