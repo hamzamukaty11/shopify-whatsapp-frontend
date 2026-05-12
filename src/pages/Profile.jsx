@@ -13,6 +13,7 @@ function Profile() {
   async function loadBilling() {
     try {
       setLoading(true)
+      setError(null)
       const data = await fetchBilling()
       setBilling(data)
     } catch (err) {
@@ -24,10 +25,11 @@ function Profile() {
 
   async function handleUpgrade(planId) {
     setUpgrading(planId)
+    setError(null)
     try {
       const data = await upgradePlan(planId)
       if (data.confirmationUrl) {
-        window.location.href = data.confirmationUrl
+        window.top.location.href = data.confirmationUrl
       }
     } catch (err) {
       setError(err.message)
@@ -135,14 +137,9 @@ function Profile() {
               {plans.map((plan) => {
                 const isCurrent = billing?.plan === plan.id
                 return (
-                  <div
-                    key={plan.id}
-                    className={"rounded-xl border-2 p-5 " + (isCurrent ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white')}
-                  >
+                  <div key={plan.id} className={"rounded-xl border-2 p-5 " + (isCurrent ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white')}>
                     {isCurrent && (
-                      <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded mb-3">
-                        CURRENT
-                      </span>
+                      <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded mb-3">CURRENT</span>
                     )}
                     <h3 className="font-bold text-gray-900 text-lg">{plan.name}</h3>
                     <div className="my-3">
@@ -159,15 +156,12 @@ function Profile() {
                       ))}
                     </ul>
                     <button
-                      onClick={() => !isCurrent && plan.id !== 'free' && handleUpgrade(plan.id)}
+                      onClick={() => { if (!isCurrent && plan.id !== 'free') handleUpgrade(plan.id) }}
                       disabled={isCurrent || plan.id === 'free' || upgrading === plan.id}
-                      className={"w-full py-2 rounded-lg text-sm font-semibold " + (isCurrent || plan.id === 'free' ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600')}
+                      className={"w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 " + (isCurrent || plan.id === 'free' ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600 cursor-pointer')}
                     >
-                      {upgrading === plan.id
-                        ? <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                        : isCurrent ? 'Current Plan'
-                        : plan.id === 'free' ? 'Free'
-                        : 'Upgrade'}
+                      {upgrading === plan.id && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {upgrading === plan.id ? 'Processing...' : isCurrent ? 'Current Plan' : plan.id === 'free' ? 'Free' : 'Upgrade'}
                     </button>
                   </div>
                 )
